@@ -1,0 +1,49 @@
+#!/bin/bash
+SERVICE_NAME="{{ java_app_name }}"
+HOME="{{ java_app_home_dir }}"
+PATH_TO_JAR=${HOME}/${SERVICE_NAME}.jar
+PID=$(ps aux | grep {{ java_app_name }}.jar | grep -v grep | awk '{print $2}')
+DATE=$(date +%Y-%m-%d)
+
+CONFIG_SERVER="{{ java_app_config_server_url }}"
+PROFILE="{{ java_app_config_server_profile }}"
+PORT="{{ java_app_port }}"
+
+ARGS="
+-Xmx{{ java_app_xmx }}
+-Xms{{ java_app_xms }}
+-Dfile.encoding=UTF-8
+-Dserver.port=$PORT
+-Dserver.tomcat.uri-encoding=UTF-8
+-Dlogging.file=${SERVICE_NAME}.log
+-Dlogging.config=${HOME}/logback-spring.xml
+-Dlogging.path=/var/log/${SERVICE_NAME}
+-Dlogging.file.name=${SERVICE_NAME}.log
+-Dlogging.file.path=/var/log/${SERVICE_NAME}
+-Dspring.profiles.active=$PROFILE
+-Dspring.cloud.config.uri=$CONFIG_SERVER
+"
+# java 10:
+#-Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=8000,suspend=n
+
+case $1 in
+start)
+    echo "Starting $SERVICE_NAME ..."
+    if [ ! -n "$PID" ]; then
+        cd {{ java_app_home_dir }}
+        nohup java -jar $ARGS $PATH_TO_JAR /tmp 1>>/var/log/${SERVICE_NAME}/${SERVICE_NAME}_startup.log 2>&1 &
+        echo "$SERVICE_NAME started ..."
+    else
+        echo "$SERVICE_NAME is already running ..."
+    fi
+    ;;
+stop)
+    if [ -n "$PID" ]; then
+        echo "$SERVICE_NAME stopping ..."
+        kill $PID
+        echo "$SERVICE_NAME stopped ..."
+    else
+        echo "$SERVICE_NAME is not running ..."
+    fi
+    ;;
+esac

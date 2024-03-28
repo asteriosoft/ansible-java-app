@@ -1,0 +1,31 @@
+java-app
+=========
+
+Role for java application deployment from artifactory or local fs.
+
+Role Variables
+--------------
+
+To do
+
+Example Playbook
+----------------
+```
+- hosts: servers
+  become: yes
+  gather_facts: yes
+
+  vars:
+    java_app_name: "test-app"
+    java_app_user_name: "test-user"
+    java_app_home_dir: "/opt/test/{{ java_app_name }}"
+    java_app_port: "8081"
+    java_app_xmx: "1024m"
+    java_app_xms: "512m"
+    java_app_config_server_url: "http://127.0.0.1:8010"
+    java_app_config_server_profile: "test"
+
+  roles:
+    - java-app
+```
+
